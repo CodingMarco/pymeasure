@@ -26,6 +26,7 @@ import logging
 
 import os
 import re
+import copy
 import pyqtgraph as pg
 from functools import partial
 import numpy
@@ -147,6 +148,26 @@ class PlotFrame(QtGui.QFrame):
         self.plot.setLabel('left', label, units=units, **self.LABEL_STYLE)
         self.y_axis = axis
         self.y_axis_changed.emit(axis)
+
+
+class MultiCurvePlotFrame(PlotFrame):
+    LABEL_STYLE = {'font-size': '10pt', 'font-family': 'Arial', 'color': '#000000'}
+    updated = QtCore.QSignal()
+    ResultsClass = ResultsCurve
+
+    def __init__(self, x_axis, y_curves, refresh_time=0.2, check_status=True, parent=None):
+        super().__init__(None, None, refresh_time, check_status, parent)
+        self.refresh_time = refresh_time
+        self.check_status = check_status
+
+        label, units = self.parse_axis(x_axis)
+        self.plot.setLabel('bottom', label, units=units, **self.LABEL_STYLE)
+    
+    def change_x_axis(self, axis):
+        pass
+
+    def change_y_axis(self, axis):
+        pass
 
 
 class ImageFrame(PlotFrame):
@@ -305,6 +326,71 @@ class PlotWidget(TabWidget, QtGui.QWidget):
         curve.pen.setColor(color)
         curve.updateItems(styleUpdate=True)
 
+
+class MultiCurvePlotWidget(TabWidget, QtGui.QWidget):
+    def __init__(self, name, x_axis, y_curves, refresh_time=0.2,
+                 check_status=True, linewidth=1, parent=None):
+        super().__init__(name, parent)
+        self.refresh_time = refresh_time
+        self.check_status = check_status
+        self.linewidth = linewidth
+        self.x_axis = x_axis
+        self.y_curves = y_curves
+        self.added_curves = dict()
+        self._setup_ui()
+        self._layout()
+
+    def _setup_ui(self):
+        self.plot_frame = MultiCurvePlotFrame(
+            self.x_axis,
+            self.y_curves,
+            self.refresh_time,
+            self.check_status
+        )
+        self.updated = self.plot_frame.updated
+        self.plot = self.plot_frame.plot
+
+    def _layout(self):
+        vbox = QtGui.QVBoxLayout(self)
+        vbox.setSpacing(0)
+        vbox.addWidget(self.plot_frame)
+        self.setLayout(vbox)
+
+    def sizeHint(self):
+        return QtCore.QSize(300, 600)
+
+    def new_curve(self, results, color=pg.intColor(0), **kwargs):
+        if 'pen' not in kwargs:
+            kwargs['pen'] = pg.mkPen(color=color, width=self.linewidth)
+        if 'antialias' not in kwargs:
+            kwargs['antialias'] = False
+        curve = ResultsCurve(results,
+                             x=self.x_axis,
+                             y=self.y_curves[0],
+                             **kwargs
+                             )
+        curve.setSymbol(None)
+        curve.setSymbolBrush(None)
+        return curve
+    
+    def load(self, curve):
+        self.added_curves[curve] = list()
+        for y_curve in self.y_curves:
+            one_curve = ResultsCurve(curve.results, self.x_axis, y_curve)
+            one_curve.update_data()
+            self.plot.addItem(one_curve)
+            self.added_curves[curve].append(one_curve)
+    
+    def remove(self, curve):
+        for one_curve in self.added_curves[curve]:
+            self.plot.removeItem(one_curve)
+        del self.added_curves[curve]
+    
+    def set_color(self, curve, color):
+        for one_curve in self.added_curves[curve]:
+            one_curve.pen.setColor(color)
+            one_curve.updateItems(styleUpdate=True)
+    
 
 class ImageWidget(TabWidget, QtGui.QWidget):
     """ Extends the ImageFrame to allow different columns

@@ -37,6 +37,7 @@ from .manager import Manager, Experiment
 from .Qt import QtCore, QtGui
 from .widgets import (
     PlotWidget,
+    MultiCurvePlotWidget,
     BrowserWidget,
     InputsWidget,
     LogWidget,
@@ -656,6 +657,29 @@ class ManagedWindow(ManagedWindowBase):
 
         # Setup measured_quantities once we know x_axis and y_axis
         self.browser_widget.browser.measured_quantities = [self.x_axis, self.y_axis]
+
+        logging.getLogger().addHandler(self.log_widget.handler)  # needs to be in Qt context?
+        log.setLevel(self.log_level)
+        log.info("ManagedWindow connected to logging")
+
+
+class MultiCurveManagedWindow(ManagedWindowBase):
+    def __init__(self, procedure_class, x_axis=None, y_curves=None, linewidth=1, **kwargs):
+        self.x_axis = x_axis
+        self.y_curves = y_curves
+        self.log_widget = LogWidget("Experiment Log")
+        self.plot_widget = MultiCurvePlotWidget("Results Graph", self.x_axis,
+                                      self.y_curves, linewidth=linewidth)
+        self.plot_widget.setMinimumSize(100, 200)
+
+        if "widget_list" not in kwargs:
+            kwargs["widget_list"] = ()
+        kwargs["widget_list"] = kwargs["widget_list"] + (self.plot_widget, self.log_widget)
+
+        super().__init__(procedure_class, **kwargs)
+
+        # Setup measured_quantities once we know x_axis and y_curves
+        self.browser_widget.browser.measured_quantities = [self.x_axis, self.y_curves]
 
         logging.getLogger().addHandler(self.log_widget.handler)  # needs to be in Qt context?
         log.setLevel(self.log_level)

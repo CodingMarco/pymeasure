@@ -117,10 +117,10 @@ class Browser(QtGui.QTreeWidget):
         experiment_parameters = experiment.procedure.parameter_objects()
         experiment_parameter_names = list(experiment_parameters.keys())
 
-        for measured_quantity in self.measured_quantities:
-            if measured_quantity not in experiment.procedure.DATA_COLUMNS:
-                raise Exception("Procedure does not measure the"
-                                " %s quantity." % measured_quantity)
+        #for measured_quantity in self.measured_quantities:
+        #    if measured_quantity not in experiment.procedure.DATA_COLUMNS:
+        #        raise Exception("Procedure does not measure the"
+        #                        " %s quantity." % measured_quantity)
 
         # Set the relevant fields within the BrowserItem if
         # that Parameter is implemented
