@@ -664,12 +664,12 @@ class ManagedWindow(ManagedWindowBase):
 
 
 class MultiCurveManagedWindow(ManagedWindowBase):
-    def __init__(self, procedure_class, x_axis=None, y_curves=None, linewidth=1, **kwargs):
+    def __init__(self, procedure_class, x_axis=None, y_curves=None, colors=[], linewidth=1, **kwargs):
         self.x_axis = x_axis
         self.y_curves = y_curves
         self.log_widget = LogWidget("Experiment Log")
         self.plot_widget = MultiCurvePlotWidget("Results Graph", self.x_axis,
-                                      self.y_curves, linewidth=linewidth)
+                                      self.y_curves, colors, linewidth=linewidth)
         self.plot_widget.setMinimumSize(100, 200)
 
         if "widget_list" not in kwargs:

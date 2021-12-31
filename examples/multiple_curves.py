@@ -60,7 +60,6 @@ class TestProcedure(Procedure):
 
 
 class MainWindow(MultiCurveManagedWindow):
-
     def __init__(self):
         super(MainWindow, self).__init__(
             procedure_class=TestProcedure,
@@ -68,6 +67,8 @@ class MainWindow(MultiCurveManagedWindow):
             displays=['iterations', 'delay', 'seed'],
             x_axis='Iteration',
             y_curves=['Random Number', 'Tulip', 'Daffodil'],
+            colors=['#FF0000', '#00FF00', '#0000FF'],
+            linewidth=3
         )
         self.setWindowTitle('GUI Example')
 

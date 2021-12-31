@@ -30,6 +30,7 @@ import copy
 import pyqtgraph as pg
 from functools import partial
 import numpy
+import random
 from collections import ChainMap
 from itertools import product
 from inspect import signature
@@ -328,7 +329,7 @@ class PlotWidget(TabWidget, QtGui.QWidget):
 
 
 class MultiCurvePlotWidget(TabWidget, QtGui.QWidget):
-    def __init__(self, name, x_axis, y_curves, refresh_time=0.2,
+    def __init__(self, name, x_axis, y_curves, colors=None, refresh_time=0.2,
                  check_status=True, linewidth=1, parent=None):
         super().__init__(name, parent)
         self.refresh_time = refresh_time
@@ -336,6 +337,11 @@ class MultiCurvePlotWidget(TabWidget, QtGui.QWidget):
         self.linewidth = linewidth
         self.x_axis = x_axis
         self.y_curves = y_curves
+        if isinstance(colors, list):
+            self.colors = colors
+        else:  # Make all colors red
+            self.colors = ['#FF0000'] * len(y_curves)
+            
         self.added_curves = dict()
         self._setup_ui()
         self._layout()
@@ -375,9 +381,11 @@ class MultiCurvePlotWidget(TabWidget, QtGui.QWidget):
     
     def load(self, curve):
         self.added_curves[curve] = list()
-        for y_curve in self.y_curves:
-            one_curve = ResultsCurve(curve.results, self.x_axis, y_curve)
+        for i, y_curve in enumerate(self.y_curves):
+            one_curve = ResultsCurve(curve.results, self.x_axis, y_curve,
+                pen=pg.mkPen(self.colors[i], width=self.linewidth))
             one_curve.update_data()
+            # Generate random RGB color as string
             self.plot.addItem(one_curve)
             self.added_curves[curve].append(one_curve)
     
