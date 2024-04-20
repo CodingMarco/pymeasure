@@ -22,20 +22,32 @@
 # THE SOFTWARE.
 #
 
-from .hp33120A import HP33120A
-from .hp34401A import HP34401A
-from .hp3478A import HP3478A
-from .hp3437A import HP3437A
-from .hp5384A import HP5384A
-from .hp8116a import HP8116A
-from .hp8350X import HP8350X
-from .hp8657b import HP8657B
-from .hp856Xx import HP8560A
-from .hp856Xx import HP8561B
-from .hp8753e import HP8753E
-from .hp11713a import HP11713A
-from .hp437b import HP437B
-from .hpsystempsu import HP6632A
-from .hpsystempsu import HP6633A
-from .hpsystempsu import HP6634A
-from .hplegacyinstrument import HPLegacyInstrument
+import ctypes
+import logging
+import math
+from enum import IntFlag
+from pymeasure.instruments.hp.hplegacyinstrument import (
+    HPLegacyInstrument,
+    StatusBitsBase,
+)
+from pymeasure.instruments.validators import strict_discrete_set, strict_range
+
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+
+
+class HP8350X(HPLegacyInstrument):
+    """Represents the Hewlett Packard 8350A/B sweep oscillator
+    and provides a high-level interface for interacting
+    with the instrument.
+    """
+
+    def __init__(self, adapter, name="Hewlett-Packard 8350X", **kwargs):
+        kwargs.setdefault("read_termination", "\r\n")
+        kwargs.setdefault("send_end", True)
+        super().__init__(
+            adapter,
+            name,
+            **kwargs,
+        )
